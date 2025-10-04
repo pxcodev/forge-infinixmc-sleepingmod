@@ -1,0 +1,194 @@
+buildscript {
+    repositories {
+        // These repositories are only for Gradle plugins, put any other repositories in the repository block further below
+        maven { url = 'https://maven.minecraftforge.net' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.0.+', changing: true
+    }
+}
+plugins {
+    id 'eclipse'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '6.0.+'
+}
+
+version = mod_version
+group = 'com.infinixmc.sleepingmod'
+archivesBaseName = 'better-sleep-infinixmc-forge'
+
+// Especifica la versión de Java a usar. Para 1.21.1, usar Java 21 (o como mínimo 17)
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
+minecraft {
+    // La versión de mappings a usar para remappear el código de Minecraft en nombres legibles por humanos.
+    // Por favor, consulta la página de ParchmentMC en: https://parchmentmc.org para las versiones más recientes.
+    // Tú debes usar 'official' para mappings oficiales, o puede usar las mappings de parchment para nombres de parámetros y javadoc.
+    mappings channel: 'official', version: '1.20.1'
+    
+    // Mappings de Parchment (opcional pero recomendado) - Deshabilitado temporalmente para evitar errores de compilación
+    // mappings channel: 'parchmentmc', version: '2024.08.18-1.21.1'
+
+    // Ejecuta el cliente y servidor de desarrollo en modo obfuscado con nombres de mappings oficiales.
+    // Esto debe estar habilitado sólo si planeas exportar el mod, ya que afecta a la experiencia del desarrollador.
+    // useOfficialMappings = true
+
+    // Versión del canal de mapeos. Esto debe coincidir con la versión en tus dependencies.
+    runs {
+        client {
+            workingDirectory project.file('run')
+
+            // Recomendado para logging más informativo. Esto es el default.
+            // property 'forge.logging.markers', 'REGISTRIES'
+
+            // Recomendado para logging menos verboso, más para usuarios finales. También disponible para el servidor.
+            // property 'forge.logging.console.level', 'debug'
+
+            // Mods a cargar en este entorno de desarrollo. Mapea un string del modid a un string del display name de Gradle source set.
+            mods {
+                better_sleep_infinixmc {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'REGISTRIES'
+
+            // Recomendado para logging menos verboso, más para usuarios finales. También disponible para el cliente.
+            // property 'forge.logging.console.level', 'debug'
+
+            mods {
+                better_sleep_infinixmc {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        // Esta ejecución config es para ejecutar un servidor multiplayer dedicado desde dentro del IDE.
+        gameTestServer {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'REGISTRIES'
+
+            mods {
+                better_sleep_infinixmc {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        // Esta ejecución config es para ejecutar el Unit Tests de Data Generation.
+        data {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'REGISTRIES'
+
+            // Especificar las salidas del directorio de data gen.
+            args '--mod', 'better_sleep_infinixmc', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+
+            mods {
+                better_sleep_infinixmc {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+// Incluir resources generadas en el jar principal
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+repositories {
+    // Put repositories for dependencies here
+    // ForgeGradle automatically adds the Forge maven and Maven Central for you
+
+    // Si tienes mod jars como dependencies, puedes declararlos como repositorios aquí también
+    // Repositorio para JARs locales
+    flatDir {
+        dirs 'libs'
+    }
+    mavenCentral()
+}
+
+dependencies {
+    // Especificar la versión de Minecraft a usar. Si esto no está presente, utilizará la última "stable" release.
+    minecraft 'net.minecraftforge:forge:1.20.1-47.4.8'
+
+    // TOML parser library desde el directorio libs - se incluirá automáticamente
+    implementation name: 'toml4j-0.7.2', version: null
+
+    // Example mod dependency with JEI - using fg.deobf() ensures the dependency is remapped to your development mappings
+    // Descomenta las siguientes líneas si necesitas JEI
+    // compileOnly fg.deobf("mezz.jei:jei-${mc_version}-common-api:${jei_version}")
+    // compileOnly fg.deobf("mezz.jei:jei-${mc_version}-forge-api:${jei_version}")
+    // runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}-forge:${jei_version}")
+
+    // Example mod dependency using a mod jar from ./libs with a flat dir repository
+    // Esto está en caso de que tengas dependencies de otros mods como jars
+    // implementation fg.deobf("blank:coolmod-${mc_version}:${coolmod_version}")
+
+    // Para más info de dependencies:
+    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
+    // http://www.gradle.org/docs/current/userguide/dependency_management.html
+}
+
+// Ejemplo de cómo cambiar las propiedades del jar principal aquí
+jar {
+    archiveClassifier = ''
+    finalizedBy 'reobfJar'
+    
+    // Incluir las librerías del directorio libs en el JAR final
+    from {
+        configurations.runtimeClasspath.filter { 
+            it.name.contains('toml4j') || it.absolutePath.contains('libs')
+        }.collect {
+            zipTree(it)
+        }
+    } {
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+        exclude "META-INF/MANIFEST.MF"
+    }
+    
+    // Excluir archivos duplicados y conflictivos
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    
+    manifest {
+        attributes([
+                "Specification-Title"     : "better_sleep_infinixmc",
+                "Specification-Vendor"    : "ReaperFxx",
+                "Specification-Version"   : "1", // Usamos full version aquí
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : project.jar.archiveVersion,
+                "Implementation-Vendor"   : "ReaperFxx",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+}
+
+// Example configuration to allow publishing using the maven-publish plugin
+// Este también es el lugar en donde se puede configurar el publishing para tu local maven cache
+// Mira https://docs.gradle.org/current/userguide/publishing_maven.html para más info.
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifactId = 'better-sleep-infinixmc-forge'
+            from components.java
+        }
+    }
+    repositories {
+        // Agregar repositorios para publicar aquí.
+        // Ten en cuenta que esto es para publicar tu mod, no para
+        // descargar dependencies.
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}

@@ -1,0 +1,62 @@
+# Esta es la información base del mod en formato TOML. No hay archivos json.
+modLoader="javafml" # Forge mod loader
+loaderVersion="[47,)" # Versión mínima de Forge (compatible con 47.x)
+
+# La licencia para el mod. Esta es una cadena de texto arbitraria que simplemente dice cómo está licenciado el mod.
+# Sin embargo, es preferible que uses las cadenas de licencia SPDX cuando sea posible.
+# La lista de cadenas válidas de SPDX puede ser encontrada aquí: https://spdx.org/licenses/
+license="MIT"
+
+# Una URL para consultar sobre problemas del mod
+# issueTrackerURL="https://github.com/ReaperFxx/mejor-sueno-infinixmc/issues" #opcional
+
+# Lista de mods - usar un [[mods]] para cada mod
+[[mods]]
+# La id del mod
+modId="better_sleep_infinixmc" # Debe coincidir con la entrada del jar manifest y es case sensitive
+# La versión del mod - debe seguir las especificaciones de versionado de forge
+version="1.0.2" # Solo incluir números, puntos y guiones. Marca el archivo como un mod de tipo beta con el TOML adjunto en el metadato
+# Un display name para el mod
+displayName="Super Better Sleep InfinixMc" # Máx. 50 caracteres
+# 👇 clave para permitir clientes sin el mod
+displayTest="IGNORE_SERVER_VERSION"
+# Indica que este mod no es requerido en el cliente
+clientSideOnly=false
+# Una URL para la página web del mod
+#updateJSONURL="https://github.com/ReaperFxx/mejor-sueno-infinixmc/releases/latest" #opcional
+# El id del mod
+#displayURL="https://github.com/ReaperFxx/mejor-sueno-infinixmc" #opcional
+# Una URL a un archivo jar específico para contener el mod. Si no está especificado, será asumido que el jar es independiente.
+#logoFile="assets/better_sleep_infinixmc/icon.png" #opcional
+# Una descripción de texto del mod (puede tener múltiples líneas). El primer párrafo es usado como resumen en la GUI de mods y debería ser breve.
+description='''
+Improves the sleep mechanics for Minecraft! Allows configurable percentage of players to skip the night with customizable messages and storm control.
+
+Features:
+- Configurable sleep threshold (percentage of players required)
+- Custom sleeping and morning messages
+- Storm clearing option
+- TOML configuration system
+- Multiplayer friendly
+'''
+# Una lista de autores - puede tener solo una entrada
+authors="ReaperFxx" # Opcional
+# La descripción de texto de trabajo para el mod usado en la GUI (puede ser multilínea)
+credits="" # Opcional
+
+# Un mínimo de dependencias. Una lista de dependencias que deben ser satisfechas para que el mod funcione.
+[[dependencies.better_sleep_infinixmc]]
+    modId="forge" # mod que se requerirá que esté presente
+    mandatory=true # si ese mod DEBE estar presente - marca falla de carga para que el mod no funcione sin él
+    versionRange="[47,)" # version range para el mod (compatible con Forge 47.x+)
+    ordering="NONE" # orden de dependencias en relación a otros mods (opcional)
+    # ¿Existen mods que este mod es compatible con pero no requiere?
+    side="SERVER" # el lado que requiere esta dependencia - BOTH, CLIENT o SERVER
+
+# Configuración adicional para mods solo del servidor
+[[dependencies.better_sleep_infinixmc]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1]"
+    ordering="NONE"
+    side="SERVER"
